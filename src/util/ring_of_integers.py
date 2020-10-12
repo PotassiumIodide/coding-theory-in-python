@@ -14,7 +14,7 @@ class RingOfIntegersModulo(Number):
         self.__inv = RingOfIntegersModulo.find_inv(element, modulo)
 
     def __str__(self) -> str:
-        return f"{self.__element} (mod {self.__modulo})"
+        return str(self.__element)
 
     def __add__(self, y):
         if self.__modulo != y.__modulo:
@@ -41,6 +41,12 @@ class RingOfIntegersModulo(Number):
 
     def __truediv__(self, y):
         return self * y.inv()
+
+    def __eq__(self, y):
+        return self.__element == y.__element and self.__modulo == y.__modulo
+
+    def __neq__(self, y):
+        return not self == y
 
     @staticmethod
     def find_inv(element: Union[int, np.ndarray], modulo: int):

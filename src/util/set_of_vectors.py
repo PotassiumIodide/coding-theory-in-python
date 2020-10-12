@@ -1,15 +1,28 @@
+import sys, os
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
+
 import numpy as np
 from collections.abc import Set
 from typing import Iterator, List, Tuple
 
+from src.util.ring_of_integers import RingOfIntegersModulo
+from src.util.vectors import Vector
+
 class VectorSet(Set):
-    def __init__(self, vectors: List[np.ndarray]):
+    def __init__(self, vectors: List[Vector]):
         """
         Instance
         Arguments:
-        vectors: {List[numpy.ndarray]} - Vectors with the same dimension
+        vectors: {List[Vector]} - Vectors with the same dimension
         """
-        self.__elements: List[np.ndarray] = [*map(np.array, list({*map(tuple, vectors)}))]
+        if not vectors:
+            self.__elements = []
+        else:
+            non_duplicate = []
+            for v in vectors:
+                if not any((v == ndup for ndup in non_duplicate)):
+                    non_duplicate.append(v)
+            self.__elements = non_duplicate
 
     def __str__(self) -> str:
         """
@@ -19,18 +32,20 @@ class VectorSet(Set):
         """
         return "".join(["{", ", ".join(map(str, self.__elements)), "}"])
 
-    def __contains__(self, vector: np.ndarray) -> bool:
+    def __contains__(self, vector: Vector) -> bool:
         """
         Judge whether the VectorSet contains a given vector.
         Argument:
-        vector: {numpy.ndarray} - A vector to be judged whether VectorSet contains
+        vector: {Vector} - A vector to be judged whether VectorSet contains
         Returns:
         {bool} - True if the VectorSet contains the vector, False otherwise
         """
-        return isinstance(vector, np.ndarray) and \
-               tuple(vector) in map(tuple, self.__elements)
+        for vec in self.__elements:
+            if vec == vector:
+                return True
+        return False
 
-    def __iter__(self) -> Iterator[np.ndarray]:
+    def __iter__(self) -> Iterator[Vector]:
         """
         Transform the type from VectorSet into Iterator[numpy.ndarray]
         Returns:
@@ -64,11 +79,7 @@ class VectorSet(Set):
         Returns:
         {bool} - True if this is the subset of a given VectorSet, False otherwise.
         """
-        vt = map(tuple, vs)
-        for v in map(tuple, self.__elements):
-            if v not in map(tuple, vt):
-                return False
-        return True
+        return all((v in vs for v in self.__elements))
 
     def __gt__(self, vs) -> bool:
         """
@@ -138,14 +149,20 @@ class VectorSet(Set):
 
 
 def main():
-    S = VectorSet([np.array([1,2,3]), np.array([4,5,6]), np.array([7,8,9])])
-    T = VectorSet([np.array([1,2,3]), np.array([7,7,9])])
-    print(np.array([1,2,3]) in S)
+    to_vector = lambda ls: Vector([*map(
+        lambda l: RingOfIntegersModulo(l, 4)
+        , ls
+    )], RingOfIntegersModulo)
+    S = VectorSet([*map(to_vector, [[1,2,3], [4,5,6], [7,8,9], [1,2,3]])])
+    T = VectorSet([*map(to_vector, [[1,2,3], [4,5,6]])])
+    # print(np.array([1,2,3]) in S)
+    print(S)
+    print(T)
     print(S <= T)
-    print(S - T)
-    print(S * S)
-    print(S & T)
-    print(S + T)
+    # print(S - T)
+    # print(S * S)
+    # print(S & T)
+    # print(S + T)
 
 
 if __name__ == "__main__":
